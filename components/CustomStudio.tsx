@@ -20,7 +20,7 @@ type Tool = (typeof TOOLS)[number]["id"];
 
 const TOOL_HELP: Record<string, string> = {
   tap: "Tap a person or object in the photo and we outline it.",
-  draw: "Draw your own line with your finger or mouse.",
+  draw: "Circle something roughly. We snap your line to its real edge. Drawn too loosely, it stays as you drew it.",
   erase: "Tap a line to remove it.",
   move: "Drag the photo around when you have zoomed in.",
 };
@@ -159,6 +159,61 @@ function buildMask(conf: Float32Array, mw: number, mh: number): { fill: Uint8Arr
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) line[(y + dy) * NW + x + dx] = 1;
   }
   return { fill, line };
+}
+
+/* Turn a rough hand-drawn loop into the subject's true contour: rasterise the loop, ask the model for the object
+   inside it from a few interior points, and keep the result that best agrees with what the person drew. */
+function snapStroke(seg: Seg, pts: Pt[]): { fill: Uint8Array; line: Uint8Array } | null {
+  const cv = document.createElement("canvas");
+  cv.width = NW; cv.height = NH;
+  const c = cv.getContext("2d", { willReadFrequently: true })!;
+  c.beginPath();
+  c.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+  c.closePath();
+  c.fillStyle = "#fff";
+  c.fill();
+  const data = c.getImageData(0, 0, NW, NH).data;
+  const inside = new Uint8Array(NW * NH);
+  let area = 0, sx = 0, sy = 0, minX = NW, maxX = 0, minY = NH, maxY = 0;
+  for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) {
+    if (data[(y * NW + x) * 4 + 3] > 127) {
+      inside[y * NW + x] = 1; area++; sx += x; sy += y;
+      if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+  }
+  if (area < 2500) return null; // a line or a scribble, not a loop around something
+  // interior points: how far each filled pixel sits from the loop's edge, so we aim at the middle of the shape
+  const dist = new Float32Array(NW * NH);
+  const edgeD = (x: number, y: number) => {
+    for (let r = 1; r < 60; r += 2) {
+      if (!inside[Math.max(0, y - r) * NW + x] || !inside[Math.min(NH - 1, y + r) * NW + x] || !inside[y * NW + Math.max(0, x - r)] || !inside[y * NW + Math.min(NW - 1, x + r)]) return r;
+    }
+    return 60;
+  };
+  const cand: { x: number; y: number; d: number }[] = [];
+  const step = Math.max(14, Math.round(Math.sqrt(area) / 7));
+  for (let y = minY; y <= maxY; y += step) for (let x = minX; x <= maxX; x += step) if (inside[y * NW + x]) { const d = edgeD(x, y); dist[y * NW + x] = d; cand.push({ x, y, d }); }
+  if (!cand.length) return null;
+  cand.sort((a, b) => b.d - a.d);
+  const sets: { x: number; y: number }[][] = [[cand[0]], cand.slice(0, 3), cand.slice(0, 6)];
+  let best: { fill: Uint8Array; line: Uint8Array } | null = null, bestScore = 0;
+  for (const set of sets) {
+    try {
+      const m = seg.segment([{ brushMode: 1, point: set.map((q) => ({ x: q.x / NW, y: q.y / NH })), isCompleted: true }]);
+      const built = buildMask(m.getAsFloat32Array(), m.width, m.height);
+      m.close();
+      if (!built) continue;
+      let mk = 0, both = 0;
+      for (let i = 0; i < built.fill.length; i++) { if (built.fill[i]) { mk++; if (inside[i]) both++; } }
+      const iou = both / (mk + area - both);
+      const recall = both / area; // how much of what was drawn the subject covers
+      const spill = mk / area; // how much bigger the subject is than the loop
+      const score = iou + (recall > 0.72 && spill < 3.2 ? 0.25 : 0);
+      if (score > bestScore) { bestScore = score; best = built; }
+    } catch { /* try the next set */ }
+  }
+  return bestScore >= 0.5 ? best : null;
 }
 
 function strokePath(ctx: CanvasRenderingContext2D, pts: Pt[]) {
@@ -514,14 +569,28 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
     pan.current = null;
     if (!drawing.current) return;
     drawing.current = false;
-    setDraft((d) => {
-      if (d && d.length > 2) {
-        const id = nextId.current++;
-        setAreas((arr) => [...arr, { id, color: glow.hex, kind: "pen", pts: d }]);
-        setActiveId(null);
-      }
-      return null;
-    });
+    const d = draft;
+    setDraft(null);
+    if (!d || d.length < 3) return;
+    const keepRaw = () => {
+      const id = nextId.current++;
+      setAreas((arr) => [...arr, { id, color: glow.hex, kind: "pen", pts: d }]);
+      setActiveId(null);
+    };
+    const seg = segRef.current;
+    if (!seg || busy) { keepRaw(); return; }
+    setBusy(true);
+    setTimeout(() => {
+      try {
+        const built = snapStroke(seg, d);
+        if (built) {
+          const id = nextId.current++;
+          setAreas((arr) => [...arr, { id, color: glow.hex, kind: "mask", fill: built.fill, line: built.line }]);
+          setActiveId(null);
+        } else keepRaw();
+      } catch (err) { console.error("studio snap", err); keepRaw(); }
+      finally { setBusy(false); }
+    }, 20);
   }
 
   function chooseColour(g: (typeof GLOWS)[number]) {
