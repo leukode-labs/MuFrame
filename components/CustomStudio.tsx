@@ -194,7 +194,7 @@ function paintArea(ctx: CanvasRenderingContext2D, a: Pick<Area, "color"> & ({ ki
 }
 
 function glowCss(color: string) {
-  return `drop-shadow(0 0 1.5px ${color}) drop-shadow(0 0 6px ${color}) drop-shadow(0 0 16px ${color}) drop-shadow(0 0 34px ${color}aa)`;
+  return `drop-shadow(0 0 2px rgba(0,0,0,.9)) drop-shadow(0 0 1.5px ${color}) drop-shadow(0 0 5px ${color}) drop-shadow(0 0 12px ${color}) drop-shadow(0 0 26px ${color}) drop-shadow(0 0 48px ${color}99)`;
 }
 
 function Tube({ area }: { area: Pick<Area, "color"> & ({ kind: "mask"; line: Uint8Array } | { kind: "pen"; pts: Pt[] }) }) {
@@ -655,7 +655,7 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
                   role="img"
                   aria-label={photo ? "Your photo in the frame" : "Sample photo in the frame"}
                   className="h-full w-full transition-[filter] duration-700"
-                  style={{ filter: neon ? "brightness(0.4) saturate(0.75) contrast(1.1)" : "none" }}
+                  style={{ filter: "none" }}
                 />
                 {neon && areas.map((a) => <Tube key={a.id + a.color} area={a} />)}
                 {neon && draft && draft.length > 1 && <Tube area={{ kind: "pen", pts: draft, color: glow.hex }} />}
