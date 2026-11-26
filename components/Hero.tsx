@@ -25,7 +25,6 @@ function swapState(p: number) {
 export default function Hero() {
   const trackRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
-  const [dark, setDark] = useState(false);
   const [reduce, setReduce] = useState(false);
 
   useEffect(() => {
@@ -111,7 +110,6 @@ export default function Hero() {
         {/* ---------- scene ---------- */}
         <div
           className="stage"
-          data-dark={dark || undefined}
           style={{ "--glow": active.glow, "--zoom": 1 + progress * 0.03, "--light": light } as React.CSSProperties}
         >
           <picture aria-hidden="true">
@@ -131,38 +129,10 @@ export default function Hero() {
               </div>
             ))}
           </div>
-
-          {/* a real switch on the wall: turns the room lights off so only the frame glows */}
-          <button
-            type="button"
-            className="wall-switch"
-            aria-pressed={dark}
-            aria-label={dark ? "Turn the room lights back on" : "Turn the room lights off"}
-            onClick={() => setDark((d) => !d)}
-          >
-            <span className="switch-plate">
-              <span className="switch-rocker" />
-            </span>
-            <span className="switch-hint">{dark ? "Lights on" : "Lights off"}</span>
-          </button>
         </div>
-        <div className="shade" data-dark={dark || undefined} aria-hidden="true" />
-
+        
         {/* ---------- interface ---------- */}
         <div className="pointer-events-none absolute inset-0 z-10">
-          {/* phones: the same switch, parked in the top-right corner instead of on the wall */}
-          <button
-            type="button"
-            className="wall-switch wall-switch-hud pointer-events-auto"
-            aria-pressed={dark}
-            aria-label={dark ? "Turn the room lights back on" : "Turn the room lights off"}
-            onClick={() => setDark((d) => !d)}
-          >
-            <span className="switch-plate">
-              <span className="switch-rocker" />
-            </span>
-            <span className="switch-hint">{dark ? "Lights on" : "Lights off"}</span>
-          </button>
           {/* intro: short line and the two actions */}
           <div className="hero-intro pointer-events-auto rise" style={{ "--d": "420ms" } as React.CSSProperties}>
             <p className="text-[15px] leading-relaxed text-white/75 sm:text-[17px]">

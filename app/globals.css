@@ -1670,3 +1670,9 @@ a.fr-add { display: inline-flex; align-items: center; justify-content: center; }
   .wall-switch-hud { display: block; left: auto; right: var(--pad); top: 22px; width: 22px; }
   .wall-switch-hud .switch-hint { left: auto; right: calc(100% + 12px); top: 50%; bottom: auto; transform: translateY(-50%); }
 }
+@media (max-aspect-ratio: 1/1) and (max-width: 340px) {
+  .hero-intro .mt-7, .hero-intro .mt-0 { gap: 0 12px; }
+  .hero-intro .btn-primary { padding-inline: 14px; font-size: 13px; gap: 6px; }
+  .hero-intro .btn-primary svg { width: 14px; height: 14px; }
+  .hero-intro .btn-text { font-size: 13px; }
+}
