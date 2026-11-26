@@ -17,6 +17,23 @@ const TOOLS = [
 ] as const;
 type Tool = (typeof TOOLS)[number]["id"];
 
+
+const TOOL_HELP: Record<string, string> = {
+  tap: "Tap a person or object in the photo and we outline it.",
+  draw: "Draw your own line with your finger or mouse.",
+  erase: "Tap a line to remove it.",
+  move: "Drag the photo around when you have zoomed in.",
+};
+const ico = (d: React.ReactNode) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>
+);
+const TOOL_ICON: Record<string, React.ReactNode> = {
+  tap: ico(<><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11" /><path d="M12 10.5V9a1.5 1.5 0 0 1 3 0v2" /><path d="M15 11v-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-4.6-2.2L4 15.5a1.6 1.6 0 0 1 2.4-2L9 15.5" /></>),
+  draw: ico(<><path d="M4 20l1-4L16.5 4.5a2 2 0 0 1 3 3L8 19l-4 1Z" /><path d="M14 7l3 3" /></>),
+  erase: ico(<><path d="M8 20h11" /><path d="M5.5 14.5 13 7a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3L11 19.5H8L5.5 17a1.5 1.5 0 0 1 0-2.5Z" /></>),
+  move: ico(<><path d="M12 3v18M3 12h18" /><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3" /></>),
+};
+
 const NW = 600;
 const NH = 800;
 const SAMPLE = "/hero/bg-mobile.webp";
@@ -617,69 +634,107 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
           </div>
         </div>
 
-        <div className="cs-dock">
-          <label className="cs-pill cs-upload">
-            <input type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
-            <span className="truncate">{photo ? photo.name : "Upload photo"}</span>
-          </label>
+        <aside className="sp" aria-label="Frame builder">
+          {/* 1 · photo */}
+          <section className="sp-step">
+            <h3 className="sp-h">Your photo</h3>
+            <label className="sp-photo">
+              <input type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
+              <span className="sp-photo-ic" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
+              </span>
+              <span className="sp-photo-t">
+                <strong>{photo ? photo.name : "Upload a photo"}</strong>
+                <small>{photo ? "Tap to choose a different one" : "A sharp, well-lit photo works best. You can also try the sample."}</small>
+              </span>
+            </label>
+          </section>
 
-          <div className="cs-seg" role="group" aria-label="Light" style={{ "--i": STYLES.findIndex((x) => x.id === style), "--n": 2 } as React.CSSProperties}>
-            <span className="cs-seg-thumb" aria-hidden="true" />
-            {STYLES.map((x) => (
-              <button key={x.id} type="button" aria-pressed={style === x.id} onClick={() => setStyle(x.id)}>
-                {x.id === "neon" ? "Neon" : "LED"}
-              </button>
-            ))}
-          </div>
+          {/* 2 · light */}
+          <section className="sp-step">
+            <h3 className="sp-h">Type of light</h3>
+            <div className="sp-two" role="radiogroup" aria-label="Type of light">
+              {STYLES.map((x) => (
+                <button key={x.id} type="button" role="radio" aria-checked={style === x.id} onClick={() => setStyle(x.id)} className="sp-card">
+                  <strong>{x.id === "neon" ? "Neon" : "LED"}</strong>
+                  <small>{x.id === "neon" ? "A glowing line traces your subject" : "Soft light spreads onto the wall"}</small>
+                </button>
+              ))}
+            </div>
+          </section>
 
+          {/* 3 · what glows (neon only) */}
           {neon && (
-            <>
-              <div className="cs-seg cs-tools" role="group" aria-label="Tool" style={{ "--i": TOOLS.findIndex((x) => x.id === tool), "--n": 4 } as React.CSSProperties}>
-                <span className="cs-seg-thumb" aria-hidden="true" />
+            <section className="sp-step">
+              <h3 className="sp-h">
+                What should glow
+                <button type="button" className="sp-undo" onClick={undo} disabled={!areas.length} aria-label="Undo last line">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></svg>
+                  Undo
+                </button>
+              </h3>
+              <div className="sp-tools" role="radiogroup" aria-label="Tool">
                 {TOOLS.map((x) => (
-                  <button key={x.id} type="button" aria-pressed={tool === x.id} onClick={() => { setTool(x.id); setActiveId(null); }}>{x.label}</button>
+                  <button key={x.id} type="button" role="radio" aria-checked={tool === x.id} onClick={() => { setTool(x.id); setActiveId(null); }} className="sp-tool">
+                    {TOOL_ICON[x.id]}
+                    <span>{x.label}</span>
+                  </button>
                 ))}
               </div>
-              <button type="button" className="cs-pill cs-mini" onClick={undo} disabled={!areas.length} aria-label="Undo last line">Undo</button>
-            </>
+              <p className="sp-help">{TOOL_HELP[tool]}</p>
+            </section>
           )}
 
-          <div className="cs-seg cs-sizes" role="group" aria-label="Size" style={{ "--i": ["s", "m", "l", "custom"].indexOf(size), "--n": 4 } as React.CSSProperties}>
-            <span className="cs-seg-thumb" aria-hidden="true" />
-            {([...SIZES.map((x) => [x.id, x.label] as const), ["custom", "Custom"] as const]).map(([id, label]) => (
-              <button key={id} type="button" aria-pressed={size === id} onClick={() => setSize(id as typeof size)}>{label}</button>
-            ))}
-          </div>
+          {/* colour */}
+          <section className="sp-step">
+            <h3 className="sp-h">Colour <span className="sp-val">{glow.name}</span></h3>
+            <div className="cs-swatches sp-swatches" role="radiogroup" aria-label="Colour">
+              {GLOWS.map((g) => (
+                <button key={g.id} type="button" role="radio" aria-checked={glow.id === g.id} aria-label={g.name} aria-pressed={glow.id === g.id} onClick={() => chooseColour(g)} style={{ background: g.hex, "--c": g.hex } as React.CSSProperties} />
+              ))}
+            </div>
+            <p className="sp-help">{!neon ? "The colour of the light behind the frame." : activeId ? "Recolouring the line you selected." : "Used for the next line you add. Tap a line to recolour it."}</p>
+          </section>
 
-          <div className="cs-size" aria-live="polite">
-            {size === "custom" ? (
-              <>
-                <input inputMode="decimal" type="number" min="10" max="300" value={cw} onChange={(e) => setCw(e.target.value)} placeholder="W" aria-label="Width in centimetres" />
-                <span>×</span>
-                <input inputMode="decimal" type="number" min="10" max="300" value={ch} onChange={(e) => setCh(e.target.value)} placeholder="H" aria-label="Height in centimetres" />
-                <span>cm</span>
-              </>
-            ) : (
-              sizeCm(SIZES.find((x) => x.id === size)!)
+          {/* size */}
+          <section className="sp-step">
+            <h3 className="sp-h">Size</h3>
+            <div className="sp-sizes" role="radiogroup" aria-label="Size">
+              {SIZES.map((x) => (
+                <button key={x.id} type="button" role="radio" aria-checked={size === x.id} onClick={() => setSize(x.id)} className="sp-card sp-size">
+                  <strong>{x.label}</strong>
+                  <small>{sizeCm(x)}</small>
+                </button>
+              ))}
+              <button type="button" role="radio" aria-checked={size === "custom"} onClick={() => setSize("custom")} className="sp-card sp-size">
+                <strong>Your size</strong>
+                <small>Any width and height</small>
+              </button>
+            </div>
+            {size === "custom" && (
+              <div className="sp-custom">
+                <label><span>Width</span><input inputMode="decimal" type="number" min="10" max="300" value={cw} onChange={(e) => setCw(e.target.value)} placeholder="40" aria-label="Width in centimetres" /><em>cm</em></label>
+                <b aria-hidden="true">×</b>
+                <label><span>Height</span><input inputMode="decimal" type="number" min="10" max="300" value={ch} onChange={(e) => setCh(e.target.value)} placeholder="60" aria-label="Height in centimetres" /><em>cm</em></label>
+              </div>
+            )}
+          </section>
+
+          {/* notes */}
+          <section className="sp-step">
+            <h3 className="sp-h">Anything we should know? <span className="sp-opt">Optional</span></h3>
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="A name to add, a deadline, where it will hang…" aria-label="Anything we should know" className="sp-note" />
+          </section>
+
+          <div className="sp-foot">
+            <button type="button" onClick={addToCart} disabled={saving} className="cs-add sp-add">
+              {saving ? "Saving design…" : added ? "Added to cart" : "Add to cart"}
+            </button>
+            {neon && areas.length > 0 && (
+              <button type="button" className="sp-dl" onClick={download}>Download design</button>
             )}
           </div>
-
-          <div className="cs-swatches" role="group" aria-label="Colour">
-            {GLOWS.map((g) => (
-              <button key={g.id} type="button" aria-label={g.name} aria-pressed={glow.id === g.id} onClick={() => chooseColour(g)} style={{ background: g.hex, "--c": g.hex } as React.CSSProperties} />
-            ))}
-          </div>
-
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Name, size, deadline…" aria-label="Anything we should know" className="cs-pill cs-note" />
-
-          {neon && areas.length > 0 && (
-            <button type="button" className="cs-pill cs-mini" onClick={download}>Download design</button>
-          )}
-          <button type="button" onClick={addToCart} disabled={saving} className="cs-add">
-            {saving ? "Saving design…" : added ? "Added" : "Add to cart"}
-          </button>
-        </div>
+        </aside>
       </div>
     </section>
   );
