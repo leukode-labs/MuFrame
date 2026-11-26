@@ -34,6 +34,28 @@ const TOOL_ICON: Record<string, React.ReactNode> = {
   move: ico(<><path d="M12 3v18M3 12h18" /><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3" /></>),
 };
 
+type EdTab = "photo" | "light" | "outline" | "colour" | "size" | "note";
+const EDITOR_TABS: { id: EdTab; label: string }[] = [
+  { id: "photo", label: "Photo" },
+  { id: "light", label: "Light" },
+  { id: "outline", label: "Outline" },
+  { id: "colour", label: "Colour" },
+  { id: "size", label: "Size" },
+  { id: "note", label: "Note" },
+];
+const TABS_LABEL: Record<EdTab, string> = { photo: "Photo", light: "Type of light", outline: "What should glow", colour: "Colour", size: "Size", note: "Note" };
+const eic = (d: React.ReactNode) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>
+);
+const EI: Record<EdTab, React.ReactNode> = {
+  photo: eic(<><rect x="3.5" y="4.5" width="17" height="15" rx="3" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" /></>),
+  light: eic(<><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z" /></>),
+  outline: eic(<><path d="M5 18c2-7 4-11 7-11s3 5 5 5 2-2 2-2" /><circle cx="5" cy="18" r="1.4" /><circle cx="19" cy="10" r="1.4" /></>),
+  colour: eic(<><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.3 0 2-.8 2-1.8 0-1.4-1.2-1.6-1.2-2.7 0-.9.7-1.5 1.7-1.5H17a3.5 3.5 0 0 0 3.5-3.5C20.5 6.5 16.7 3.5 12 3.5Z" /><circle cx="8" cy="11" r="1" /><circle cx="11" cy="7.6" r="1" /><circle cx="15.5" cy="8.4" r="1" /></>),
+  size: eic(<><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" /><path d="M9 9h6v6H9z" /></>),
+  note: eic(<><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4.5 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" /></>),
+};
+
 const NW = 600;
 const NH = 800;
 const SAMPLE = "/hero/bg-mobile.webp";
@@ -262,6 +284,7 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
   const [photo, setPhoto] = useState<{ url: string; name: string } | null>(null);
   const [glow, setGlow] = useState<(typeof GLOWS)[number]>(GLOWS[0]);
   const [style, setStyle] = useState<(typeof STYLES)[number]["id"]>("neon");
+  const [tab, setTab] = useState<EdTab | null>(null);
   const [tool, setTool] = useState<Tool>("tap");
   const [areas, setAreas] = useState<Area[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -289,6 +312,11 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
   sizeRef.current = areas.length;
 
   const photoSrc = photo?.url ?? SAMPLE;
+  useEffect(() => {
+    if (!page) return;
+    document.documentElement.setAttribute("data-editor", "");
+    return () => document.documentElement.removeAttribute("data-editor");
+  }, [page]);
   const neon = style === "neon";
 
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
@@ -590,6 +618,11 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
           <div className="cs-col">
             <div className="cs-framewrap">
             {neon && (
+              <button type="button" className="ed-undo" onClick={undo} disabled={!areas.length} aria-label="Undo last line">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></svg>
+              </button>
+            )}
+            {neon && (
                   <div className="cs-zoom" role="group" aria-label="Zoom">
                     <button type="button" onClick={() => zoomAt(1.5)} disabled={view.s >= 6} aria-label="Zoom in">+</button>
                     <button type="button" onClick={() => setView({ s: 1, x: 0, y: 0 })} aria-label="Reset zoom">{Math.round(view.s * 100)}%</button>
@@ -634,107 +667,106 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
           </div>
         </div>
 
-        <aside className="sp" aria-label="Frame builder">
-          {/* 1 · photo */}
-          <section className="sp-step">
-            <h3 className="sp-h">Your photo</h3>
-            <label className="sp-photo">
-              <input type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-              <span className="sp-photo-ic" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>
-              </span>
-              <span className="sp-photo-t">
-                <strong>{photo ? photo.name : "Upload a photo"}</strong>
-                <small>{photo ? "Tap to choose a different one" : "A sharp, well-lit photo works best. You can also try the sample."}</small>
-              </span>
-            </label>
-          </section>
+        <div className="ed" role="region" aria-label="Frame editor">
+          {tab && (
+            <div className="ed-tray" role="group" aria-label={TABS_LABEL[tab]}>
+              {tab === "photo" && (
+                <label className="ed-photo">
+                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => { onFile(e.target.files?.[0]); setTab(neon ? "outline" : "colour"); }} />
+                  <span className="ed-photo-ic" aria-hidden="true">{EI.photo}</span>
+                  <span className="ed-photo-t">
+                    <strong>{photo ? "Choose a different photo" : "Upload your photo"}</strong>
+                    <small>{photo ? photo.name : "A sharp, well-lit photo works best. Until then, you are editing a sample."}</small>
+                  </span>
+                </label>
+              )}
 
-          {/* 2 · light */}
-          <section className="sp-step">
-            <h3 className="sp-h">Type of light</h3>
-            <div className="sp-two" role="radiogroup" aria-label="Type of light">
-              {STYLES.map((x) => (
-                <button key={x.id} type="button" role="radio" aria-checked={style === x.id} onClick={() => setStyle(x.id)} className="sp-card">
-                  <strong>{x.id === "neon" ? "Neon" : "LED"}</strong>
-                  <small>{x.id === "neon" ? "A glowing line traces your subject" : "Soft light spreads onto the wall"}</small>
-                </button>
-              ))}
+              {tab === "light" && (
+                <div className="ed-two" role="radiogroup" aria-label="Type of light">
+                  {STYLES.map((x) => (
+                    <button key={x.id} type="button" role="radio" aria-checked={style === x.id} onClick={() => { setStyle(x.id); if (x.id === "led" && tab === "light") setTab("colour"); }} className="ed-card">
+                      <strong>{x.id === "neon" ? "Neon" : "LED"}</strong>
+                      <small>{x.id === "neon" ? "A glowing line traces your subject" : "Soft light spreads onto the wall"}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {tab === "outline" && neon && (
+                <>
+                  <div className="ed-tools" role="radiogroup" aria-label="Tool">
+                    {TOOLS.map((x) => (
+                      <button key={x.id} type="button" role="radio" aria-checked={tool === x.id} onClick={() => { setTool(x.id); setActiveId(null); }} className="ed-tool">
+                        {TOOL_ICON[x.id]}
+                        <span>{x.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="ed-help">{TOOL_HELP[tool]}</p>
+                </>
+              )}
+
+              {tab === "colour" && (
+                <>
+                  <div className="ed-swatches" role="radiogroup" aria-label="Colour">
+                    {GLOWS.map((g) => (
+                      <button key={g.id} type="button" role="radio" aria-checked={glow.id === g.id} aria-label={g.name} onClick={() => chooseColour(g)} style={{ background: g.hex, "--c": g.hex } as React.CSSProperties} />
+                    ))}
+                  </div>
+                  <p className="ed-help"><b>{glow.name}.</b> {!neon ? "The colour of the light behind the frame." : activeId ? "Recolouring the line you selected." : "Used for the next line you add. Tap a line to recolour it."}</p>
+                </>
+              )}
+
+              {tab === "size" && (
+                <>
+                  <div className="ed-sizes" role="radiogroup" aria-label="Size">
+                    {SIZES.map((x) => (
+                      <button key={x.id} type="button" role="radio" aria-checked={size === x.id} onClick={() => setSize(x.id)} className="ed-card ed-size">
+                        <strong>{x.label}</strong>
+                        <small>{x.w}×{x.h} cm</small>
+                      </button>
+                    ))}
+                    <button type="button" role="radio" aria-checked={size === "custom"} onClick={() => setSize("custom")} className="ed-card ed-size">
+                      <strong>Yours</strong>
+                      <small>Any size</small>
+                    </button>
+                  </div>
+                  {size === "custom" && (
+                    <div className="ed-custom">
+                      <label><span>Width</span><input inputMode="decimal" type="number" min="10" max="300" value={cw} onChange={(e) => setCw(e.target.value)} placeholder="40" aria-label="Width in centimetres" /><em>cm</em></label>
+                      <b aria-hidden="true">×</b>
+                      <label><span>Height</span><input inputMode="decimal" type="number" min="10" max="300" value={ch} onChange={(e) => setCh(e.target.value)} placeholder="60" aria-label="Height in centimetres" /><em>cm</em></label>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {tab === "note" && (
+                <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="A name to add, a deadline, where it will hang…" aria-label="Anything we should know" className="ed-note" />
+              )}
             </div>
-          </section>
-
-          {/* 3 · what glows (neon only) */}
-          {neon && (
-            <section className="sp-step">
-              <h3 className="sp-h">
-                What should glow
-                <button type="button" className="sp-undo" onClick={undo} disabled={!areas.length} aria-label="Undo last line">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></svg>
-                  Undo
-                </button>
-              </h3>
-              <div className="sp-tools" role="radiogroup" aria-label="Tool">
-                {TOOLS.map((x) => (
-                  <button key={x.id} type="button" role="radio" aria-checked={tool === x.id} onClick={() => { setTool(x.id); setActiveId(null); }} className="sp-tool">
-                    {TOOL_ICON[x.id]}
-                    <span>{x.label}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="sp-help">{TOOL_HELP[tool]}</p>
-            </section>
           )}
 
-          {/* colour */}
-          <section className="sp-step">
-            <h3 className="sp-h">Colour <span className="sp-val">{glow.name}</span></h3>
-            <div className="cs-swatches sp-swatches" role="radiogroup" aria-label="Colour">
-              {GLOWS.map((g) => (
-                <button key={g.id} type="button" role="radio" aria-checked={glow.id === g.id} aria-label={g.name} aria-pressed={glow.id === g.id} onClick={() => chooseColour(g)} style={{ background: g.hex, "--c": g.hex } as React.CSSProperties} />
-              ))}
-            </div>
-            <p className="sp-help">{!neon ? "The colour of the light behind the frame." : activeId ? "Recolouring the line you selected." : "Used for the next line you add. Tap a line to recolour it."}</p>
-          </section>
-
-          {/* size */}
-          <section className="sp-step">
-            <h3 className="sp-h">Size</h3>
-            <div className="sp-sizes" role="radiogroup" aria-label="Size">
-              {SIZES.map((x) => (
-                <button key={x.id} type="button" role="radio" aria-checked={size === x.id} onClick={() => setSize(x.id)} className="sp-card sp-size">
-                  <strong>{x.label}</strong>
-                  <small>{sizeCm(x)}</small>
-                </button>
-              ))}
-              <button type="button" role="radio" aria-checked={size === "custom"} onClick={() => setSize("custom")} className="sp-card sp-size">
-                <strong>Your size</strong>
-                <small>Any width and height</small>
+          <div className="ed-tabs" role="tablist" aria-label="Editor tools">
+            {EDITOR_TABS.filter((t) => neon || t.id !== "outline").map((t) => (
+              <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(tab === t.id ? null : t.id)} className="ed-tab">
+                <span className="ed-tab-ic" aria-hidden="true">{EI[t.id]}</span>
+                <span>{t.label}</span>
               </button>
-            </div>
-            {size === "custom" && (
-              <div className="sp-custom">
-                <label><span>Width</span><input inputMode="decimal" type="number" min="10" max="300" value={cw} onChange={(e) => setCw(e.target.value)} placeholder="40" aria-label="Width in centimetres" /><em>cm</em></label>
-                <b aria-hidden="true">×</b>
-                <label><span>Height</span><input inputMode="decimal" type="number" min="10" max="300" value={ch} onChange={(e) => setCh(e.target.value)} placeholder="60" aria-label="Height in centimetres" /><em>cm</em></label>
-              </div>
-            )}
-          </section>
+            ))}
+          </div>
 
-          {/* notes */}
-          <section className="sp-step">
-            <h3 className="sp-h">Anything we should know? <span className="sp-opt">Optional</span></h3>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="A name to add, a deadline, where it will hang…" aria-label="Anything we should know" className="sp-note" />
-          </section>
-
-          <div className="sp-foot">
-            <button type="button" onClick={addToCart} disabled={saving} className="cs-add sp-add">
+          <div className="ed-cta">
+            <button type="button" onClick={addToCart} disabled={saving} className="cs-add ed-add">
               {saving ? "Saving design…" : added ? "Added to cart" : "Add to cart"}
             </button>
             {neon && areas.length > 0 && (
-              <button type="button" className="sp-dl" onClick={download}>Download design</button>
+              <button type="button" className="ed-dl" onClick={download} aria-label="Download design">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" /></svg>
+              </button>
             )}
           </div>
-        </aside>
+        </div>
       </div>
     </section>
   );

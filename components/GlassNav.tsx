@@ -271,6 +271,10 @@ export default function GlassNav() {
       </button>
       <div className="drawer-scrim md:hidden" data-open={drawer || undefined} onClick={() => setDrawer(false)} aria-hidden="true" />
       <aside className="drawer md:hidden" data-open={drawer || undefined} aria-label="More" aria-hidden={!drawer} inert={!drawer || undefined}>
+        <nav className="sheet-quick" aria-label="Main pages">
+          <Link href="/">Home</Link>
+          <Link href="/shop">Shop</Link>
+        </nav>
         <nav className="sheet-cards" aria-label="More pages">
           <Link href="/about" className="sheet-card sheet-about" aria-current={isActive("/about") ? "page" : undefined}>
             <span className="sheet-kicker">Our story</span>
