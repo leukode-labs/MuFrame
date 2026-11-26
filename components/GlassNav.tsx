@@ -11,6 +11,7 @@ const NAV = [
   { label: "Shop", href: "/shop" },
   { label: "Custom orders", href: "/custom" },
   { label: "About", href: "/about" },
+  { label: "Journal", href: "/journal" },
   { label: "FAQ", href: "/faq" },
 ];
 
@@ -280,10 +281,15 @@ export default function GlassNav() {
             <span className="sheet-name">FAQ</span>
           </Link>
         </nav>
+        <nav className="sheet-more" aria-label="More">
+          <Link href="/journal" aria-current={isActive("/journal") ? "page" : undefined}>Journal</Link>
+          <Link href="/delivery" aria-current={isActive("/delivery") ? "page" : undefined}>Delivery and returns</Link>
+        </nav>
         <div className="sheet-reach">
           <span className="sheet-label">Talk to us</span>
           <SocialIcons className="drawer-social" />
         </div>
+        <p className="sheet-legal"><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link></p>
       </aside>
       <header
         ref={ref}

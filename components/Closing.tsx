@@ -1,11 +1,10 @@
 import { SHOP } from "@/lib/shop";
 import SocialIcons from "./SocialIcons";
 
-const LINKS = [
-  { href: "/shop", label: "Shop" },
-  { href: "/custom", label: "Custom orders" },
-  { href: "/about", label: "About" },
-  { href: "/faq", label: "FAQ" },
+const COLS = [
+  { title: "Shop", links: [{ href: "/shop", label: "Shop" }, { href: "/custom", label: "Custom orders" }] },
+  { title: "Help", links: [{ href: "/faq", label: "FAQ" }, { href: "/delivery", label: "Delivery and returns" }] },
+  { title: "Studio", links: [{ href: "/about", label: "About" }, { href: "/journal", label: "Journal" }] },
 ];
 
 export default function Closing() {
@@ -26,11 +25,14 @@ export default function Closing() {
         </a>
 
         <div className="flex items-end gap-12 text-[15px] font-medium sm:gap-16">
-          <nav className="flex flex-col gap-3 text-white/70" aria-label="Footer">
-            {LINKS.map((l) => (
-              <a key={l.href} href={l.href} className="transition hover:text-white">
-                {l.label}
-              </a>
+          <nav className="grid grid-cols-2 gap-x-10 gap-y-8 text-white/70 sm:grid-cols-3 sm:gap-x-14" aria-label="Footer">
+            {COLS.map((c) => (
+              <div key={c.title} className="flex flex-col gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">{c.title}</span>
+                {c.links.map((l) => (
+                  <a key={l.href} href={l.href} className="transition hover:text-white">{l.label}</a>
+                ))}
+              </div>
             ))}
           </nav>
           <SocialIcons className="foot-social" />
@@ -38,8 +40,11 @@ export default function Closing() {
       </div>
 
       <div className="mx-auto mt-20 max-w-[1320px] border-t border-white/10 pt-6 text-xs text-white/40 flex justify-between gap-6">
-        <span>© {new Date().getFullYear()} MU-FRAME</span>
-        <span>Kigali, Rwanda</span>
+        <span>© {new Date().getFullYear()} MU-FRAME · Kigali, Rwanda</span>
+        <span className="flex gap-5">
+          <a href="/terms" className="transition hover:text-white/80">Terms</a>
+          <a href="/privacy" className="transition hover:text-white/80">Privacy</a>
+        </span>
       </div>
 
       <p className="foot-mark" aria-hidden="true">

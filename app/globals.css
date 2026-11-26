@@ -1714,3 +1714,17 @@ a.fr-add { display: inline-flex; align-items: center; justify-content: center; }
   .drawer-social a::after { content: attr(aria-label); }
   .drawer-social a:first-child { background: #ff1f4b; border-color: transparent; }
 }
+
+/* ---- journal ---- */
+.jr-cover { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 28px; background: radial-gradient(70% 80% at 50% 55%, color-mix(in srgb, var(--g, #ff1f4b) 38%, #05060f), #05060f 72%); border: 1px solid rgba(255,255,255,.08); }
+.jr-cover img { position: absolute; top: 7%; left: 50%; height: 86%; width: auto; max-width: 80%; transform: translateX(-50%); object-fit: contain; filter: drop-shadow(0 0 40px color-mix(in srgb, var(--g, #ff1f4b) 55%, transparent)); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.jr-lead:hover .jr-cover img { transform: translateX(-50%) scale(1.035); }
+.jr-cover-wide { aspect-ratio: 16 / 8; }
+@media (max-width: 640px) { .jr-cover-wide { aspect-ratio: 4 / 3.4; } }
+
+@media (max-width: 767px) {
+  .sheet-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .sheet-more a { padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.9); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); }
+  .sheet-more a[aria-current="page"] { border-color: #ff1f4b; }
+  .sheet-legal { display: flex; justify-content: center; gap: 18px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); font-size: 12px; color: rgba(255,255,255,.4); }
+}
