@@ -8,7 +8,6 @@ import { useCart } from "./CartProvider";
 export default function ProductDetail({ id }: { id: string }) {
   const p = PRODUCTS.find((x) => x.id === id)!;
   const { add } = useCart();
-  const [dark, setDark] = useState(false);
   const [added, setAdded] = useState(false);
   const [sizeId, setSizeId] = useState<(typeof SIZES)[number]["id"]>("s");
   const size = SIZES.find((x) => x.id === sizeId)!;
@@ -40,21 +39,11 @@ export default function ProductDetail({ id }: { id: string }) {
           {/* the frame on a wall, with its own light switch */}
           <div
             className="detail-wall relative flex h-[min(78svh,720px)] min-h-[440px] items-end justify-center overflow-hidden rounded-[2rem] border border-white/10"
-            data-dark={dark || undefined}
             style={{ "--g": p.glow, "--tint": p.tint ?? "none" } as React.CSSProperties}
           >
             <span className="detail-light absolute inset-0" />
             <span className="absolute inset-x-0 bottom-0 h-[14%] bg-gradient-to-t from-black/50 to-transparent" />
             <img src={p.src} alt={`${p.name} frame`} className="detail-img relative mb-[9%] h-[78%] w-auto max-w-[80%] object-contain" />
-            <button
-              type="button"
-              onClick={() => setDark((d) => !d)}
-              aria-pressed={dark}
-              className="absolute right-5 top-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80 backdrop-blur transition hover:border-white/40"
-            >
-              <span className={`h-2 w-2 rounded-full ${dark ? "bg-white/40" : "bg-white"}`} style={dark ? undefined : { boxShadow: "0 0 8px #fff" }} />
-              {dark ? "Lights on" : "Lights off"}
-            </button>
           </div>
 
           <div className="lg:sticky lg:top-32">

@@ -1518,7 +1518,7 @@ html, body { overflow-x: clip; max-width: 100%; }
 
 /* ---- hero on phones: whole frame visible beside her, nothing past the edge ---- */
 @media (max-aspect-ratio: 1/1) {
-  .stage { --fx: 57%; --fh: 44%; --fb: 8.4%; --cx: 82%; --cy: 64%; }
+  .stage { --fx: 42%; --fh: 50%; --fb: 8.2%; --cx: 68%; --cy: 66%; --sx: 35%; --sy: 64%; right: -34px; }
 }
 
 /* ---- collection on phones: two columns, like a shop ---- */
@@ -1628,3 +1628,11 @@ a.fr-add { display: inline-flex; align-items: center; justify-content: center; }
   .hero-intro { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 767px) { .glass-nav :is(.glass-search-btn, .glass-cart-btn) svg { width: 22px; height: 22px; } .glass-nav:has(.glass-results[data-open]) .glass-search-btn svg { width: 20px; height: 20px; } }
+
+/* hero on phones: the pitch sits under the title, the scene is left to the frame */
+@media (max-aspect-ratio: 1/1) and (max-width: 767px) {
+  .hero-intro { top: calc(96px + clamp(3rem, 15vw, 5.5rem) * 1.8 + 14px); bottom: auto; right: var(--pad); max-width: none; }
+  .hero-intro p { font-size: 14px; max-width: 30ch; }
+  .hero-intro .mt-7 { margin-top: 18px; }
+}
+@media (max-aspect-ratio: 1/1) and (max-width: 767px) and (max-height: 700px) { .hero-intro p { display: none; } }
