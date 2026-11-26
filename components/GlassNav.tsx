@@ -32,6 +32,7 @@ export default function GlassNav() {
   const [onLight, setOnLight] = useState(false);
   const [barLight, setBarLight] = useState(false);
   const [, setOpen] = useState(false);
+  const [drawer, setDrawer] = useState(false);
   const [searching, setSearching] = useState(false);
   const [moving, setMoving] = useState(false);
   const moveT = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -40,6 +41,17 @@ export default function GlassNav() {
     clearTimeout(moveT.current);
     moveT.current = setTimeout(() => setMoving(false), 700);
   };
+
+  // drawer: closes on navigation and Escape, and holds the page still while open
+  useEffect(() => { setDrawer(false); }, [path]);
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
+    window.addEventListener("keydown", onKey);
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.documentElement.style.overflow = prev; };
+  }, [drawer]);
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const closedW = useRef(0);
@@ -243,6 +255,39 @@ export default function GlassNav() {
         </Link>
         <SocialIcons className="brand-social" />
       </div>
+      {/* phones: menu button in the top-right and the drawer it opens */}
+      <button
+        type="button"
+        className="menu-btn md:hidden"
+        data-light={onLight || undefined}
+        aria-label="Open menu"
+        aria-expanded={drawer}
+        onClick={() => setDrawer(true)}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+          <path d="M4 8h16M9 16h11" />
+        </svg>
+      </button>
+      <div className="drawer-scrim md:hidden" data-open={drawer || undefined} onClick={() => setDrawer(false)} aria-hidden="true" />
+      <aside className="drawer md:hidden" data-open={drawer || undefined} aria-label="Menu" aria-hidden={!drawer} inert={!drawer || undefined}>
+        <div className="drawer-top">
+          <span className="drawer-title">Menu</span>
+          <button type="button" className="drawer-close" aria-label="Close menu" onClick={() => setDrawer(false)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <nav className="drawer-links" aria-label="Pages">
+          {[{ label: "Home", href: "/" }, ...NAV].map((n) => (
+            <Link key={n.label} href={n.href} className="drawer-link" aria-current={(n.href === "/" ? path === "/" : isActive(n.href)) ? "page" : undefined}>
+              {n.label}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+          ))}
+        </nav>
+        <div className="drawer-foot">
+          <SocialIcons className="drawer-social" />
+        </div>
+      </aside>
       <header
         ref={ref}
         className="glass glass-nav"
