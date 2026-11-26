@@ -1676,3 +1676,13 @@ a.fr-add { display: inline-flex; align-items: center; justify-content: center; }
   .hero-intro .btn-primary svg { width: 14px; height: 14px; }
   .hero-intro .btn-text { font-size: 13px; }
 }
+
+/* phones: the frame's light spills up the right-hand wall so the top-right isn't a dead patch */
+@media (max-aspect-ratio: 1/1) {
+  .wall-light {
+    background:
+      radial-gradient(ellipse 60% 22% at 96% 7%, color-mix(in srgb, var(--glow) 46%, transparent), transparent 72%),
+      radial-gradient(ellipse 34% 62% at var(--cx) var(--cy), color-mix(in srgb, var(--glow) 50%, transparent), transparent 72%),
+      radial-gradient(ellipse 34% 7% at var(--cx) var(--floor), color-mix(in srgb, var(--glow) 55%, transparent), transparent 72%);
+  }
+}
