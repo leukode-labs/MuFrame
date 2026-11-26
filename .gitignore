@@ -5,3 +5,5 @@ out
 *.log
 *.flag
 next-env.d.ts
+
+.vercel

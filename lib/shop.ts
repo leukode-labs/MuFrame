@@ -41,6 +41,17 @@ export const PRODUCTS: Product[] = [
   { id: "arsenal-crest", name: "Arsenal Crest", category: "sport", price: 65000, src: "/products/arsenal-crest.webp", glow: "#ff1f3a" },
 ];
 
+// Frame sizes (cm, width × height). PLACEHOLDER sizes and price steps: set the real ones here.
+// `mult` scales a product's base price (the base price is the Small size).
+export const SIZES = [
+  { id: "s", label: "Small", w: 30, h: 40, mult: 1 },
+  { id: "m", label: "Medium", w: 40, h: 60, mult: 1.5 },
+  { id: "l", label: "Large", w: 60, h: 90, mult: 2.3 },
+] as const;
+export type SizeId = (typeof SIZES)[number]["id"];
+export const sizeCm = (s: { w: number; h: number }) => `${s.w} × ${s.h} cm`;
+export const sizePrice = (base: number | null, mult: number) => (base === null ? null : Math.round((base * mult) / 5000) * 5000);
+
 export const CATEGORY_LABEL: Record<Category, string> = { cars: "Cars", sport: "Sport", art: "Art" };
 
 export const GLOWS = [

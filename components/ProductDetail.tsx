@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CATEGORY_LABEL, PRODUCTS, priceLabel, waLink } from "@/lib/shop";
+import { CATEGORY_LABEL, PRODUCTS, SIZES, priceLabel, sizeCm, sizePrice, waLink } from "@/lib/shop";
 import { useCart } from "./CartProvider";
 
 export default function ProductDetail({ id }: { id: string }) {
@@ -10,6 +10,9 @@ export default function ProductDetail({ id }: { id: string }) {
   const { add } = useCart();
   const [dark, setDark] = useState(false);
   const [added, setAdded] = useState(false);
+  const [sizeId, setSizeId] = useState<(typeof SIZES)[number]["id"]>("s");
+  const size = SIZES.find((x) => x.id === sizeId)!;
+  const price = sizePrice(p.price, size.mult);
 
   const related = [
     ...PRODUCTS.filter((x) => x.category === p.category && x.id !== p.id),
@@ -17,7 +20,7 @@ export default function ProductDetail({ id }: { id: string }) {
   ].slice(0, 3);
 
   function addToCart() {
-    add({ key: p.id, name: p.name, detail: `${CATEGORY_LABEL[p.category]} frame`, price: p.price, src: p.src, tint: p.tint, glow: p.glow });
+    add({ key: `${p.id}-${size.id}`, name: p.name, detail: `${CATEGORY_LABEL[p.category]} frame, ${size.label} ${sizeCm(size)}`, price, src: p.src, tint: p.tint, glow: p.glow });
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
   }
@@ -56,17 +59,31 @@ export default function ProductDetail({ id }: { id: string }) {
 
           <div className="lg:sticky lg:top-32">
             <h1 className="text-[clamp(2.6rem,5vw,4.4rem)] font-extrabold leading-[0.95] tracking-[-0.04em]">{p.name}</h1>
-            <p className="mt-4 text-xl font-semibold tabular-nums text-white/80">{priceLabel(p.price)}</p>
+            <p className="mt-4 text-xl font-semibold tabular-nums text-white/80">{priceLabel(price)}</p>
             <p className="mt-6 max-w-[44ch] leading-relaxed text-white/60">
-              A lit frame from the MU-FRAME collection. Tell us the size you want when you order, and we confirm the details and price with you on WhatsApp.
+              A lit frame from the MU-FRAME collection. Pick a size, add it to your cart, and we confirm the details with you on WhatsApp.
             </p>
+
+            <fieldset className="mt-8">
+              <legend className="mb-3 text-sm font-semibold text-white/55">Size</legend>
+              <div className="size-grid">
+                {SIZES.map((z) => (
+                  <button key={z.id} type="button" className="size-opt" aria-pressed={sizeId === z.id} onClick={() => setSizeId(z.id)}>
+                    <span className="size-name">{z.label}</span>
+                    <span className="size-cm">{sizeCm(z)}</span>
+                    <span className="size-price">{priceLabel(sizePrice(p.price, z.mult))}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-white/45">Need another size? Ask us on WhatsApp.</p>
+            </fieldset>
 
             <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4">
               <button type="button" onClick={addToCart} className="btn-primary">
                 {added ? "Added to cart ✓" : "Add to cart"}
               </button>
               <a
-                href={waLink(`Hello MU-FRAME, I'm interested in the ${p.name} frame. What sizes and prices do you have?`)}
+                href={waLink(`Hello MU-FRAME, I'm interested in the ${p.name} frame. I'd like the ${size.label} size (${sizeCm(size)}).`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-text"

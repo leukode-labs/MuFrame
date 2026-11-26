@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GLOWS } from "@/lib/shop";
+import { GLOWS, SIZES, sizeCm } from "@/lib/shop";
 import { useCart } from "./CartProvider";
 
 const STYLES = [
@@ -254,6 +254,9 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
   const [msg, setMsg] = useState("");
   const [note, setNote] = useState("");
   const [added, setAdded] = useState(false);
+  const [size, setSize] = useState<"s" | "m" | "l" | "custom">("m");
+  const [cw, setCw] = useState("");
+  const [ch, setCh] = useState("");
   const [saving, setSaving] = useState(false);
 
   const baseRef = useRef<HTMLCanvasElement>(null);
@@ -517,12 +520,15 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
       } catch { /* the download button stays as the backup */ }
       setSaving(false);
     }
+    const preset = SIZES.find((x) => x.id === size);
+    const sizeText = preset ? `${preset.label} ${sizeCm(preset)}` : cw && ch ? `custom ${cw} × ${ch} cm` : "size to confirm";
     const colours = Array.from(new Set(areas.map((a) => GLOWS.find((g) => g.hex === a.color)?.name ?? a.color))).join(", ");
     add({
-      key: `custom-${style}-${Date.now()}`,
+      key: `custom-${style}-${size}-${Date.now()}`,
       name: "Custom frame",
       detail: [
         styleLabel,
+        sizeText,
         neon && areas.length ? `${areas.length} neon ${areas.length === 1 ? "line" : "lines"} (${colours})` : glow.name,
         note.trim() ? `note: ${note.trim()}` : "",
         link ? `design: ${link}` : "",
@@ -638,6 +644,26 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
               <button type="button" className="cs-pill cs-mini" onClick={undo} disabled={!areas.length} aria-label="Undo last line">Undo</button>
             </>
           )}
+
+          <div className="cs-seg cs-sizes" role="group" aria-label="Size" style={{ "--i": ["s", "m", "l", "custom"].indexOf(size), "--n": 4 } as React.CSSProperties}>
+            <span className="cs-seg-thumb" aria-hidden="true" />
+            {([...SIZES.map((x) => [x.id, x.label] as const), ["custom", "Custom"] as const]).map(([id, label]) => (
+              <button key={id} type="button" aria-pressed={size === id} onClick={() => setSize(id as typeof size)}>{label}</button>
+            ))}
+          </div>
+
+          <div className="cs-size" aria-live="polite">
+            {size === "custom" ? (
+              <>
+                <input inputMode="decimal" type="number" min="10" max="300" value={cw} onChange={(e) => setCw(e.target.value)} placeholder="W" aria-label="Width in centimetres" />
+                <span>×</span>
+                <input inputMode="decimal" type="number" min="10" max="300" value={ch} onChange={(e) => setCh(e.target.value)} placeholder="H" aria-label="Height in centimetres" />
+                <span>cm</span>
+              </>
+            ) : (
+              sizeCm(SIZES.find((x) => x.id === size)!)
+            )}
+          </div>
 
           <div className="cs-swatches" role="group" aria-label="Colour">
             {GLOWS.map((g) => (

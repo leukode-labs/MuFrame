@@ -5,7 +5,7 @@ const STEPS = ["Upload your photo", "Choose neon or LED, and the colour", "Order
 
 export default function CustomTeaser() {
   return (
-    <section className="light pattern-mat relative isolate overflow-hidden px-5 py-28 sm:px-8 lg:px-[5vw] lg:py-36">
+    <section className="light pattern-mat relative isolate overflow-hidden px-5 py-20 sm:py-28 sm:px-8 lg:px-[5vw] lg:py-36">
       <div className="grid items-center gap-16 lg:grid-cols-[1fr_1fr]">
         <div>
           <SectionHead

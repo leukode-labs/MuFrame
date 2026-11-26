@@ -82,7 +82,7 @@ export default function CartDrawer() {
                     <div className="flex justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-semibold">{i.name}</p>
-                        <p className="truncate text-sm text-white/55">{i.detail}</p>
+                        <p className="line-clamp-3 break-words text-sm leading-snug text-white/55">{i.detail}</p>
                       </div>
                       <p className="whitespace-nowrap text-sm font-semibold tabular-nums">
                         {i.price !== null ? fmt(i.price * i.qty) : "On request"}

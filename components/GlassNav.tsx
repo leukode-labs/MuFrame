@@ -14,6 +14,15 @@ const NAV = [
   { label: "FAQ", href: "/faq" },
 ];
 
+const ic = (d: React.ReactNode) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>
+);
+const TABS = [
+  { label: "Home", href: "/", icon: ic(<><path d="M4 11.5 12 4.5l8 7" /><path d="M6 10.5V19a1 1 0 0 0 1 1h3.5v-5h3V20H17a1 1 0 0 0 1-1v-8.5" /></>) },
+  { label: "Shop", href: "/shop", icon: ic(<><rect x="5" y="4" width="14" height="16" rx="1.5" /><path d="M9 9v6M12 7.5v9M15 10v4" /></>) },
+  { label: "Custom", href: "/custom", icon: ic(<><path d="M12 4.5v15M4.5 12h15" /><circle cx="12" cy="12" r="7.5" /></>) },
+];
+
 export default function GlassNav() {
   const cart = useCart();
   const path = usePathname();
@@ -21,7 +30,8 @@ export default function GlassNav() {
   const isActive = (href: string) => path === href || path.startsWith(href + "/");
   const ref = useRef<HTMLElement>(null);
   const [onLight, setOnLight] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [barLight, setBarLight] = useState(false);
+  const [, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [moving, setMoving] = useState(false);
   const moveT = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -98,14 +108,19 @@ export default function GlassNav() {
   // switch to light glass while the bar sits over a light section
   useEffect(() => {
     let raf = 0;
-    const check = () => {
-      const y = 44;
+    const overLight = (y: number) => {
       let light = false;
       document.querySelectorAll<HTMLElement>(".light").forEach((el) => {
         const r = el.getBoundingClientRect();
         if (r.top <= y && r.bottom >= y) light = true;
       });
-      setOnLight(light);
+      return light;
+    };
+    const check = () => {
+      const top = overLight(44);
+      setOnLight(top);
+      // on phones the bar sits at the bottom of the screen
+      setBarLight(window.innerWidth < 768 ? overLight(window.innerHeight - 46) : top);
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -122,6 +137,23 @@ export default function GlassNav() {
       window.removeEventListener("resize", onScroll);
     };
   }, [path]);
+
+  // phones: keep the bottom bar above the on-screen keyboard
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const set = () => {
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--kb", `${kb}px`);
+    };
+    set();
+    vv.addEventListener("resize", set);
+    vv.addEventListener("scroll", set);
+    return () => {
+      vv.removeEventListener("resize", set);
+      vv.removeEventListener("scroll", set);
+    };
+  }, []);
 
   // a specular highlight that follows the pointer across the glass
   function onMove(e: React.PointerEvent) {
@@ -214,7 +246,7 @@ export default function GlassNav() {
       <header
         ref={ref}
         className="glass glass-nav"
-        data-light={onLight || undefined}
+        data-light={barLight || undefined}
         data-flat={searching || moving || undefined}
         onPointerMove={onMove}
         onPointerLeave={() => ref.current?.style.removeProperty("--mx")}
@@ -227,6 +259,15 @@ export default function GlassNav() {
             {NAV.map((n) => (
               <Link key={n.label} href={n.href} tabIndex={searching ? -1 : 0} className="glass-link" aria-current={isActive(n.href) ? "page" : undefined}>
                 {n.label}
+              </Link>
+            ))}
+          </nav>
+
+          <nav className="glass-tabs md:hidden" aria-label="Main">
+            {TABS.map((t) => (
+              <Link key={t.label} href={t.href} className="glass-link tab" aria-current={(t.href === "/" ? path === "/" : isActive(t.href)) ? "page" : undefined}>
+                {t.icon}
+                <span className="tab-label">{t.label}</span>
               </Link>
             ))}
           </nav>
@@ -246,6 +287,7 @@ export default function GlassNav() {
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
+              <span className="tab-label">Search</span>
             </button>
             <input
               ref={inputRef}
@@ -274,20 +316,10 @@ export default function GlassNav() {
               <path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" />
               <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
             </svg>
+            <span className="tab-label">Cart</span>
             {cart.count > 0 && <span className="glass-badge">{cart.count}</span>}
           </button>
 
-          <button
-          type="button"
-          className="glass-link glass-icon glass-menu-btn"
-          aria-label="Menu"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-            {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 9h16M4 15h16" />}
-          </svg>
-          </button>
         </div>
 
         <div className="glass-results" data-open={searching || undefined} aria-hidden={!searching}>
@@ -304,7 +336,7 @@ export default function GlassNav() {
                     <Link href={`/shop/${p.id}`} className="glass-hit" tabIndex={searching ? 0 : -1} onClick={closeSearch}>
                       <img src={p.src} alt="" className="glass-hit-img" />
                       <span className="glass-hit-name">{p.name}</span>
-                      <span className="glass-hit-meta">{CATEGORY_LABEL[p.category]} · {priceLabel(p.price)}</span>
+                      <span className="glass-hit-meta">{CATEGORY_LABEL[p.category]} · {p.price === null ? priceLabel(p.price) : `from ${priceLabel(p.price)}`}</span>
                     </Link>
                   </li>
                 ))}
@@ -314,17 +346,6 @@ export default function GlassNav() {
         </div>
       </header>
 
-      {open && (
-        <nav className="glass glass-menu md:hidden" data-light={onLight || undefined} aria-label="Main">
-          <span className="glass-rim" aria-hidden="true" />
-          <span className="glass-sheen" aria-hidden="true" />
-          {NAV.map((n) => (
-            <Link key={n.label} href={n.href} className="glass-link text-base" aria-current={isActive(n.href) ? "page" : undefined} onClick={() => setOpen(false)}>
-              {n.label}
-            </Link>
-          ))}
-        </nav>
-      )}
     </>
   );
 }

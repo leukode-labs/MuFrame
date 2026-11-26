@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CATEGORY_LABEL, PRODUCTS, priceLabel, type Category, type Product } from "@/lib/shop";
-import { useCart } from "./CartProvider";
 
 const FILTERS: { id: "all" | Category; label: string }[] = [
   { id: "all", label: "All" },
@@ -113,10 +112,8 @@ export default function Collection({ featured = false, page = false }: { feature
 }
 
 function Frame({ product: p }: { product: Product }) {
-  const { add } = useCart();
   const ref = useRef<HTMLElement>(null);
   const [lit, setLit] = useState(false);
-  const [added, setAdded] = useState(false);
 
   // touch screens have no hover: a frame switches on while it is in the middle of the screen
   useEffect(() => {
@@ -136,20 +133,12 @@ function Frame({ product: p }: { product: Product }) {
         </span>
         <span className="fr-info">
           <span className="fr-name">{p.name}</span>
-          <span className="fr-price">{priceLabel(p.price)}</span>
+          <span className="fr-price">{p.price === null ? priceLabel(p.price) : `From ${priceLabel(p.price)}`}</span>
         </span>
       </Link>
-      <button
-        type="button"
-        className="fr-add"
-        onClick={() => {
-          add({ key: p.id, name: p.name, detail: `${CATEGORY_LABEL[p.category]} frame`, price: p.price, src: p.src, tint: p.tint, glow: p.glow });
-          setAdded(true);
-          setTimeout(() => setAdded(false), 2000);
-        }}
-      >
-        {added ? "Added to cart" : "Add to cart"}
-      </button>
+      <Link href={`/shop/${p.id}`} className="fr-add">
+        Choose size
+      </Link>
     </article>
   );
 }
