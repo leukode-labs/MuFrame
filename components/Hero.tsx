@@ -115,7 +115,7 @@ export default function Hero() {
           style={{ "--glow": active.glow, "--zoom": 1 + progress * 0.03, "--light": light } as React.CSSProperties}
         >
           <picture aria-hidden="true">
-            <source media="(max-aspect-ratio: 1/1)" srcSet="/hero/bg-mobile.webp" />
+            <source media="(max-aspect-ratio: 1/1)" srcSet="/hero/bg-mobile-2.webp" />
             <img className="stage-bg" src="/hero/bg-desktop.webp" alt="" fetchPriority="high" />
           </picture>
           <div className="wall-light" aria-hidden="true" />

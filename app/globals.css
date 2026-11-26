@@ -1518,7 +1518,7 @@ html, body { overflow-x: clip; max-width: 100%; }
 
 /* ---- hero on phones: whole frame visible beside her, nothing past the edge ---- */
 @media (max-aspect-ratio: 1/1) {
-  .stage { --fx: 42%; --fh: 50%; --fb: 8.2%; --cx: 68%; --cy: 66%; --sx: 35%; --sy: 64%; right: -34px; }
+  .stage { --fx: 42%; --fh: 50%; --fb: 8.2%; --cx: 68%; --cy: 66%; --sx: 35%; --sy: 64%; right: clamp(-34px, calc((100svh * 0.5631 - 100vw) * -0.4), 0px); }
 }
 
 /* ---- collection on phones: two columns, like a shop ---- */
@@ -1635,4 +1635,20 @@ a.fr-add { display: inline-flex; align-items: center; justify-content: center; }
   .hero-intro p { font-size: 14px; max-width: 30ch; }
   .hero-intro .mt-7 { margin-top: 18px; }
 }
-@media (max-aspect-ratio: 1/1) and (max-width: 767px) and (max-height: 700px) { .hero-intro p { display: none; } }
+
+@media (max-aspect-ratio: 1/1) and (max-width: 767px) {
+  .hero-intro .mt-7, .hero-intro .mt-0 { flex-wrap: nowrap; gap: 0 18px; }
+  .hero-intro .btn-primary { padding-inline: 20px; font-size: 14px; white-space: nowrap; }
+  .hero-intro .btn-text { font-size: 14px; white-space: nowrap; }
+}
+
+/* short phone screens (Safari with its bars): keep every line, tighten the stack and sink the scene a little */
+@media (max-aspect-ratio: 1/1) and (max-width: 767px) and (max-height: 780px) {
+  .stage { bottom: -26px; }
+  .hero-title { top: 84px; }
+  .hero-title h1 { font-size: min(14.5vw, 7.8svh); }
+  .hero-intro { top: calc(84px + min(14.5vw, 7.8svh) * 1.75 + 10px); }
+  .hero-intro p { font-size: 13px; line-height: 1.4; max-width: 34ch; }
+  .hero-intro .mt-7 { margin-top: 12px; }
+  .hero-intro .btn-primary { padding-block: 13px; }
+}
