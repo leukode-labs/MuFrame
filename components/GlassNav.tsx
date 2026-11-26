@@ -269,22 +269,19 @@ export default function GlassNav() {
         </svg>
       </button>
       <div className="drawer-scrim md:hidden" data-open={drawer || undefined} onClick={() => setDrawer(false)} aria-hidden="true" />
-      <aside className="drawer md:hidden" data-open={drawer || undefined} aria-label="Menu" aria-hidden={!drawer} inert={!drawer || undefined}>
-        <div className="drawer-top">
-          <span className="drawer-title">Menu</span>
-          <button type="button" className="drawer-close" aria-label="Close menu" onClick={() => setDrawer(false)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </div>
-        <nav className="drawer-links" aria-label="Pages">
-          {[{ label: "Home", href: "/" }, ...NAV].map((n) => (
-            <Link key={n.label} href={n.href} className="drawer-link" aria-current={(n.href === "/" ? path === "/" : isActive(n.href)) ? "page" : undefined}>
-              {n.label}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </Link>
-          ))}
+      <aside className="drawer md:hidden" data-open={drawer || undefined} aria-label="More" aria-hidden={!drawer} inert={!drawer || undefined}>
+        <nav className="sheet-cards" aria-label="More pages">
+          <Link href="/about" className="sheet-card sheet-about" aria-current={isActive("/about") ? "page" : undefined}>
+            <span className="sheet-kicker">Our story</span>
+            <span className="sheet-name">About</span>
+          </Link>
+          <Link href="/faq" className="sheet-card sheet-faq" aria-current={isActive("/faq") ? "page" : undefined}>
+            <span className="sheet-kicker">Ordering, photos, payment</span>
+            <span className="sheet-name">FAQ</span>
+          </Link>
         </nav>
-        <div className="drawer-foot">
+        <div className="sheet-reach">
+          <span className="sheet-label">Talk to us</span>
           <SocialIcons className="drawer-social" />
         </div>
       </aside>
