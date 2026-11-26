@@ -629,12 +629,13 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
                     <button type="button" onClick={() => zoomAt(1 / 1.5)} disabled={view.s <= 1} aria-label="Zoom out">−</button>
                   </div>
                 )}
+            {!neon && <span className="led-wall" aria-hidden="true" style={{ "--c": glow.hex } as React.CSSProperties} />}
             <div
-              className="cs-frame"
+              className={neon ? "cs-frame" : "cs-frame is-led"}
               style={
                 neon
                   ? { padding: "1.6%", boxShadow: `0 0 0 1px rgba(255,255,255,0.08), 0 30px 80px -30px #000` }
-                  : { padding: "1.4%", boxShadow: `0 0 0 1px ${glow.hex}66, 0 0 36px 4px ${glow.hex}cc, 0 0 130px 26px ${glow.hex}66` }
+                  : ({ padding: "1.5%", "--c": glow.hex } as React.CSSProperties)
               }
             >
               <div
@@ -658,7 +659,7 @@ export default function CustomStudio({ page = false }: { page?: boolean }) {
                 />
                 {neon && areas.map((a) => <Tube key={a.id + a.color} area={a} />)}
                 {neon && draft && draft.length > 1 && <Tube area={{ kind: "pen", pts: draft, color: glow.hex }} />}
-                {!neon && <span className="pointer-events-none absolute inset-0 mix-blend-screen" style={{ boxShadow: `inset 0 0 70px 6px ${glow.hex}66` }} />}
+                {!neon && <span className="led-glass" aria-hidden="true" />}
                 </div>
               </div>
             </div>
