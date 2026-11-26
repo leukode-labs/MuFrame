@@ -150,6 +150,19 @@ export default function Hero() {
 
         {/* ---------- interface ---------- */}
         <div className="pointer-events-none absolute inset-0 z-10">
+          {/* phones: the same switch, parked in the top-right corner instead of on the wall */}
+          <button
+            type="button"
+            className="wall-switch wall-switch-hud pointer-events-auto"
+            aria-pressed={dark}
+            aria-label={dark ? "Turn the room lights back on" : "Turn the room lights off"}
+            onClick={() => setDark((d) => !d)}
+          >
+            <span className="switch-plate">
+              <span className="switch-rocker" />
+            </span>
+            <span className="switch-hint">{dark ? "Lights on" : "Lights off"}</span>
+          </button>
           {/* intro: short line and the two actions */}
           <div className="hero-intro pointer-events-auto rise" style={{ "--d": "420ms" } as React.CSSProperties}>
             <p className="text-[15px] leading-relaxed text-white/75 sm:text-[17px]">

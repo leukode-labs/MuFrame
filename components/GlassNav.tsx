@@ -19,8 +19,8 @@ const ic = (d: React.ReactNode) => (
 );
 const TABS = [
   { label: "Home", href: "/", icon: ic(<><path d="M4 11.5 12 4.5l8 7" /><path d="M6 10.5V19a1 1 0 0 0 1 1h3.5v-5h3V20H17a1 1 0 0 0 1-1v-8.5" /></>) },
-  { label: "Shop", href: "/shop", icon: ic(<><rect x="5" y="4" width="14" height="16" rx="1.5" /><path d="M9 9v6M12 7.5v9M15 10v4" /></>) },
-  { label: "Custom", href: "/custom", icon: ic(<><path d="M12 4.5v15M4.5 12h15" /><circle cx="12" cy="12" r="7.5" /></>) },
+  { label: "Shop", href: "/shop", icon: ic(<><rect x="4" y="4" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" /></>) },
+  { label: "Custom", href: "/custom", icon: ic(<><path d="m4.5 19.5 9.5-9.5" /><path d="m12.4 8.4 3.2 3.2" /><path d="M17.5 3.5v4M15.5 5.5h4" /><path d="M8 3.5v2.4M6.8 4.7h2.4" /><path d="M19 13.5v2.4M17.8 14.7h2.4" /></>) },
 ];
 
 export default function GlassNav() {
